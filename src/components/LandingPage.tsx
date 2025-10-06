@@ -9,14 +9,12 @@ import {
   Shield,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import heroImage from "@assets/generated_images/Productive_workspace_with_task_app_b4fdfd1b.png";
 
 interface LandingPageProps {
   onOpenAuth: () => void;
 }
 
 export function LandingPage({ onOpenAuth }: LandingPageProps) {
-
   const features = [
     {
       icon: CheckCircle2,
@@ -73,10 +71,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
             >
               Sign In
             </Button>
-            <Button
-              onClick={onOpenAuth}
-              data-testid="button-signup"
-            >
+            <Button onClick={onOpenAuth} data-testid="button-signup">
               Get Started
             </Button>
             <ThemeToggle />
@@ -126,7 +121,9 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
             <div className="relative">
               <div className="relative rounded-lg overflow-hidden shadow-xl">
                 <img
-                  src={heroImage}
+                  src={
+                    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&ixid=M3w5dHx8MHx8fHx8fHwxNjg3NzYyMDU1&auto=format&fit=crop&w=1470&q=80"
+                  }
                   alt="Productive workspace with TaskFlow app"
                   className="w-full h-auto"
                   data-testid="img-hero"
@@ -174,9 +171,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
             <div className="space-y-4">
-              <h2 className="text-3xl font-bold">
-                Multiple Ways to Sign In
-              </h2>
+              <h2 className="text-3xl font-bold">Multiple Ways to Sign In</h2>
               <p className="text-lg text-muted-foreground">
                 Choose the authentication method that works best for you. Sign
                 in with Google for instant access, use WhatsApp for quick phone

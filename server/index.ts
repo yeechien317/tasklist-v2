@@ -1,71 +1,137 @@
-import express, { type Request, Response, NextFunction } from "express";
-import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+import express from "express";
+import { createServer } from "http";
+import { storage } from "./storage.js";
+import { insertUserSchema, insertTaskSchema } from "@shared/schema";
+import { startViteServer } from "./vite.js";
+import open from "open";
 
 const app = express();
+const port = 3000;
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
+// Authentication routes
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
-
-  res.on("finish", () => {
-    const duration = Date.now() - start;
-    if (path.startsWith("/api")) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
-
-      if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + "…";
-      }
-
-      log(logLine);
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
     }
-  });
 
-  next();
+    const user = await storage.getUserByUsername(username);
+
+    if (!user || user.password !== password) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    res.json({ user: { id: user.id, username: user.username } });
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({ error: "Login failed" });
+  }
 });
 
-(async () => {
-  const server = await registerRoutes(app);
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const result = insertUserSchema.safeParse(req.body);
 
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.message });
+    }
 
-    res.status(status).json({ message });
-    throw err;
-  });
+    const existingUser = await storage.getUserByUsername(result.data.username);
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+    if (existingUser) {
+      return res.status(409).json({ error: "User already exists" });
+    }
+
+    const user = await storage.createUser(result.data);
+
+    res.json({ user: { id: user.id, username: user.username } });
+  } catch (error) {
+    console.error("Registration error:", error);
+    res.status(500).json({ error: "Registration failed" });
   }
+});
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
+// Task routes
+app.get("/api/tasks", async (req, res) => {
+  try {
+    const userId = req.query.userId as string;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const tasks = await storage.getTasks(userId);
+    res.json(tasks);
+  } catch (error) {
+    console.error("Get tasks error:", error);
+    res.status(500).json({ error: "Failed to fetch tasks" });
+  }
+});
+
+app.post("/api/tasks", async (req, res) => {
+  try {
+    const result = insertTaskSchema.safeParse(req.body);
+
+    if (!result.success) {
+      return res.status(400).json({ error: result.error.message });
+    }
+
+    const task = await storage.createTask(result.data);
+    res.json(task);
+  } catch (error) {
+    console.error("Create task error:", error);
+    res.status(500).json({ error: "Failed to create task" });
+  }
+});
+
+app.patch("/api/tasks/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const task = await storage.updateTask(id, req.body);
+
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    res.json(task);
+  } catch (error) {
+    console.error("Update task error:", error);
+    res.status(500).json({ error: "Failed to update task" });
+  }
+});
+
+app.delete("/api/tasks/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await storage.deleteTask(id);
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Delete task error:", error);
+    res.status(500).json({ error: "Failed to delete task" });
+  }
+});
+
+async function startServer() {
+  await startViteServer(app);
+
+  const server = createServer(app);
+
+  server.listen(port, async () => {
+    const url = `http://localhost:${port}`;
+    console.log(`🚀 Dev server running at ${url}`);
+    console.log(`🌐 Opening browser...`);
+    await open(url);
   });
-})();
+}
+
+startServer();
