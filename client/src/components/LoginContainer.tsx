@@ -7,15 +7,21 @@ import { CheckCircle2 } from "lucide-react";
 
 interface LoginContainerProps {
   onLogin: (email: string, password: string) => void;
+  onRegister: (email: string, password: string) => void;
 }
 
-export function LoginContainer({ onLogin }: LoginContainerProps) {
+export function LoginContainer({ onLogin, onRegister }: LoginContainerProps) {
+  const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password);
+    if (isRegistering) {
+      onRegister(email, password);
+    } else {
+      onLogin(email, password);
+    }
   };
 
   return (
@@ -27,12 +33,16 @@ export function LoginContainer({ onLogin }: LoginContainerProps) {
               <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Welcome to TaskFlow</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            {isRegistering ? "Create Account" : "Welcome to TaskFlow"}
+          </CardTitle>
           <CardDescription>
-            Sign in to your account to manage your tasks
+            {isRegistering
+              ? "Create a new account to start managing your tasks"
+              : "Sign in to your account to manage your tasks"}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="login-email">Email</Label>
@@ -59,9 +69,21 @@ export function LoginContainer({ onLogin }: LoginContainerProps) {
               />
             </div>
             <Button type="submit" className="w-full" data-testid="button-login">
-              Sign In
+              {isRegistering ? "Create Account" : "Sign In"}
             </Button>
           </form>
+          <div className="text-center text-sm">
+            <button
+              type="button"
+              onClick={() => setIsRegistering(!isRegistering)}
+              className="text-primary hover:underline"
+              data-testid="button-toggle-mode"
+            >
+              {isRegistering
+                ? "Already have an account? Sign in"
+                : "Don't have an account? Create one"}
+            </button>
+          </div>
         </CardContent>
       </Card>
     </div>

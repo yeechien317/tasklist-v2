@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { LoginContainer } from "@/components/LoginContainer";
-import { Dashboard } from "@/components/Dashboard";
+import { LandingPage } from "@/components/LandingPage";
+import { AuthLoginDialog } from "@/components/AuthLoginDialog";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Task, InsertTask } from "@shared/schema";
@@ -16,6 +16,7 @@ export default function TaskApp() {
     const saved = localStorage.getItem("user");
     return saved ? JSON.parse(saved) : null;
   });
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,6 +34,7 @@ export default function TaskApp() {
     },
     onSuccess: (data: { user: User }) => {
       setUser(data.user);
+      setAuthDialogOpen(false);
       toast({
         title: "Welcome back!",
         description: "You've successfully signed in.",
@@ -47,8 +49,34 @@ export default function TaskApp() {
     },
   });
 
+  const registerMutation = useMutation({
+    mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      const response = await apiRequest("POST", "/api/auth/register", { username: email, password });
+      return await response.json();
+    },
+    onSuccess: (data: { user: User }) => {
+      setUser(data.user);
+      setAuthDialogOpen(false);
+      toast({
+        title: "Account created!",
+        description: "Welcome to TaskFlow. Let's get organized!",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Registration failed",
+        description: error.message.includes("409") ? "User already exists. Please sign in instead." : "Failed to create account. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleLogin = (email: string, password: string) => {
     loginMutation.mutate({ email, password });
+  };
+
+  const handleRegister = (email: string, password: string) => {
+    registerMutation.mutate({ email, password });
   };
 
   const handleLogout = () => {
@@ -60,8 +88,22 @@ export default function TaskApp() {
     });
   };
 
+  const handleOpenAuth = () => {
+    setAuthDialogOpen(true);
+  };
+
   if (!user) {
-    return <LoginContainer onLogin={handleLogin} />;
+    return (
+      <>
+        <LandingPage onOpenAuth={handleOpenAuth} />
+        <AuthLoginDialog
+          open={authDialogOpen}
+          onOpenChange={setAuthDialogOpen}
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+        />
+      </>
+    );
   }
 
   return <DashboardWithData user={user} onLogout={handleLogout} />;
@@ -97,7 +139,7 @@ function DashboardWithData({ user, onLogout }: DashboardWithDataProps) {
       return await response.json();
     },
     onSuccess: (newTask: Task) => {
-      setTasks([newTask, ...tasks]);
+      setTasks(prev => [newTask, ...prev]);
       queryClient.invalidateQueries({ queryKey: ["/api/tasks", user.id] });
       toast({
         title: "Task created",
@@ -119,7 +161,7 @@ function DashboardWithData({ user, onLogout }: DashboardWithDataProps) {
       return await response.json();
     },
     onSuccess: (updatedTask: Task) => {
-      setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t));
+      setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
       queryClient.invalidateQueries({ queryKey: ["/api/tasks", user.id] });
     },
     onError: () => {
@@ -137,7 +179,7 @@ function DashboardWithData({ user, onLogout }: DashboardWithDataProps) {
       return await response.json();
     },
     onSuccess: (_, id) => {
-      setTasks(tasks.filter(t => t.id !== id));
+      setTasks(prev => prev.filter(t => t.id !== id));
       queryClient.invalidateQueries({ queryKey: ["/api/tasks", user.id] });
       toast({
         title: "Task deleted",

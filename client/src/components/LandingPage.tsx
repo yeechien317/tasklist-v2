@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -9,12 +8,14 @@ import {
   Zap,
   Shield,
 } from "lucide-react";
-import { AuthDialog } from "./AuthDialog";
 import { ThemeToggle } from "./ThemeToggle";
 import heroImage from "@assets/generated_images/Productive_workspace_with_task_app_b4fdfd1b.png";
 
-export function LandingPage() {
-  const [authOpen, setAuthOpen] = useState(false);
+interface LandingPageProps {
+  onOpenAuth: () => void;
+}
+
+export function LandingPage({ onOpenAuth }: LandingPageProps) {
 
   const features = [
     {
@@ -67,13 +68,13 @@ export function LandingPage() {
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              onClick={() => setAuthOpen(true)}
+              onClick={onOpenAuth}
               data-testid="button-signin"
             >
               Sign In
             </Button>
             <Button
-              onClick={() => setAuthOpen(true)}
+              onClick={onOpenAuth}
               data-testid="button-signup"
             >
               Get Started
@@ -100,7 +101,7 @@ export function LandingPage() {
               <div className="flex flex-wrap gap-4">
                 <Button
                   size="lg"
-                  onClick={() => setAuthOpen(true)}
+                  onClick={onOpenAuth}
                   data-testid="button-hero-cta"
                 >
                   Start Organizing - It's Free
@@ -218,7 +219,7 @@ export function LandingPage() {
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={() => setAuthOpen(true)}
+                  onClick={onOpenAuth}
                   data-testid="button-benefits-cta"
                 >
                   Sign Up Now
@@ -242,7 +243,7 @@ export function LandingPage() {
             </p>
             <Button
               size="lg"
-              onClick={() => setAuthOpen(true)}
+              onClick={onOpenAuth}
               data-testid="button-final-cta"
             >
               Get Started for Free
@@ -268,9 +269,6 @@ export function LandingPage() {
           </div>
         </div>
       </footer>
-
-      {/* Auth Dialog */}
-      <AuthDialog open={authOpen} onOpenChange={setAuthOpen} />
     </div>
   );
 }
