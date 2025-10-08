@@ -31,6 +31,7 @@
     "express": "^4.21.2",
     "lucide-react": "^0.453.0",
     "mongodb": "^6.20.0",
+    "nodemon": "^3.1.10",
     "open": "^9.1.0",
     "radix": "^0.0.0",
     "react": "^18.3.1",
@@ -45,8 +46,10 @@
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",
-    "@types/express": "4.17.21",
-    "@types/node": "20.16.11",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^4.17.21",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^20.16.11",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.7.0",
@@ -55,8 +58,8 @@
     "esbuild": "^0.25.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
-    "tsx": "^4.20.5",
-    "typescript": "5.6.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.6.3",
     "vite": "^5.4.20",
     "vite-tsconfig-paths": "^5.1.4"
   }

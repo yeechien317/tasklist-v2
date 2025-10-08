@@ -18,14 +18,16 @@ interface AuthLoginDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onLoginSuccess?: (user: any) => void;
+  initialMode?: "signin" | "signup-method" | "signup-email" | "signup-phone";
 }
 
 export function AuthLoginDialog({
   open,
   onOpenChange,
   onLoginSuccess,
+  initialMode = "signin",
 }: AuthLoginDialogProps) {
-  const [authMode, setAuthMode] = useState<"signin" | "signup-method" | "signup-email" | "signup-phone">("signin");
+  const [authMode, setAuthMode] = useState<"signin" | "signup-method" | "signup-email" | "signup-phone">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
@@ -117,7 +119,7 @@ export function AuthLoginDialog({
   };
 
   const resetForm = () => {
-    setAuthMode("signin");
+    setAuthMode(initialMode);
     setEmail("");
     setPassword("");
     setPhone("");
@@ -386,3 +388,5 @@ export function AuthLoginDialog({
     </Dialog>
   );
 }
+
+export default AuthLoginDialog;

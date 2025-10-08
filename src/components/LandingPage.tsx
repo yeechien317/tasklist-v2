@@ -6,15 +6,19 @@ import {
   Bell,
   Smartphone,
   Zap,
-  Shield,
+  Shield
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { AuthLoginDialog } from "./AuthLoginDialog";
+import { useState } from "react";
 
 interface LandingPageProps {
   onOpenAuth: () => void;
 }
 
 export function LandingPage({ onOpenAuth }: LandingPageProps) {
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
   const features = [
     {
       icon: CheckCircle2,
@@ -32,7 +36,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
       icon: Bell,
       title: "Stay Notified",
       description:
-        "Receive notifications for upcoming tasks and deadlines across all your devices.",
+        "Stay alert. Choose your desired way to receive notification on upcoming expiring task.",
     },
     {
       icon: Smartphone,
@@ -71,7 +75,8 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
             >
               Sign In
             </Button>
-            <Button onClick={onOpenAuth} data-testid="button-signup">
+            
+            <Button onClick={() => setIsAuthOpen(true)} data-testid="button-signup">
               Get Started
             </Button>
             <ThemeToggle />
@@ -96,7 +101,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
               <div className="flex flex-wrap gap-4">
                 <Button
                   size="lg"
-                  onClick={onOpenAuth}
+                  onClick = {() => setIsAuthOpen(true)}
                   data-testid="button-hero-cta"
                 >
                   Start Organizing - It's Free
@@ -214,7 +219,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
                 <Button
                   className="w-full"
                   size="lg"
-                  onClick={onOpenAuth}
+                  onClick ={() => setIsAuthOpen(true)}
                   data-testid="button-benefits-cta"
                 >
                   Sign Up Now
@@ -238,7 +243,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
             </p>
             <Button
               size="lg"
-              onClick={onOpenAuth}
+              onClick={() => setIsAuthOpen(true)}
               data-testid="button-final-cta"
             >
               Get Started for Free
@@ -249,6 +254,17 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Auth Dialog */}
+      <AuthLoginDialog
+        open={isAuthOpen}
+        onOpenChange={setIsAuthOpen}
+        initialMode="signup-method"
+        onLoginSuccess={() => {
+          setIsAuthOpen(false);
+          // Handle successful login here
+        }}
+      />
 
       {/* Footer */}
       <footer className="py-12 border-t">
